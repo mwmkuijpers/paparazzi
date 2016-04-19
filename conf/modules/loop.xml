@@ -1,0 +1,16 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="loop" dir="loop">
+  <doc>
+    <description>waypoints following</description>
+  </doc>
+  <header>
+    <file name="loop.h"/>
+  </header>
+  <init fun="loop_init()"/>
+  <periodic fun="loop_periodic" freq="512"/>
+  <makefile>
+    <file name="loop.c"/>
+  </makefile>
+</module>
+
