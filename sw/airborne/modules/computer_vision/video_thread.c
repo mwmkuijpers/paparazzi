@@ -89,7 +89,7 @@ PRINT_CONFIG_VAR(VIDEO_THREAD_FPS)
 
 // The place where the shots are saved (without slash on the end)
 #ifndef VIDEO_THREAD_SHOT_PATH
-#define VIDEO_THREAD_SHOT_PATH "/data/video/usb/images1"
+#define VIDEO_THREAD_SHOT_PATH "/data/video/images"
 #endif
 PRINT_CONFIG_VAR(VIDEO_THREAD_SHOT_PATH)
 
@@ -107,7 +107,6 @@ struct video_thread_t video_thread = {
 
 static void video_thread_save_shot(struct image_t *img, struct image_t *img_jpeg)
 {
-printf("MARLY video_thread_save_shot\n");
 
   // Search for a file where we can write to
   char save_name[128];
@@ -211,10 +210,8 @@ static void *video_thread_function(void *data)
     }
 
     // Check if we need to take a shot
-   if (video_thread.take_shot) {
-printf("[video_thread] MARLY going to save...\n");
+    if (video_thread.take_shot) {
       video_thread_save_shot(img_final, &img_jpeg);
-printf("[video_thread] MARLY shot saved\n");
       video_thread.take_shot = FALSE;
     }
 
@@ -236,7 +233,6 @@ printf("[video_thread] MARLY shot saved\n");
  */
 void video_thread_init(void)
 {
-/*printf("MARLY: video_thread_init started");*/
   struct video_config_t *vid = (struct video_config_t *)&(VIDEO_THREAD_CAMERA);
 
   cv_current_thread = 1;
@@ -281,7 +277,7 @@ void video_thread_start(void)
   if (pthread_create(&tid, NULL, video_thread_function, (void*)(&VIDEO_THREAD_CAMERA)) != 0) {
     printf("[vievideo] Could not create streaming thread.\n");
     return;
-  } else printf("[vievideo] Created streaming thread.\n");
+  }
 }
 
 /**
@@ -313,8 +309,5 @@ void video_thread_stop(void)
  */
 void video_thread_take_shot(bool_t take)
 {
-printf("[video_thread] MARLY take shot\n"); // works!
-video_thread.take_shot = take;
-printf("[videao thread] MARLY shot taken\n");
-/*printf("MARLY: shot taken, value = " STRINGIFY(bool_t take));*/
+  video_thread.take_shot = take;
 }

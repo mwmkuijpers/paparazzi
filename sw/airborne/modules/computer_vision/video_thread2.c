@@ -88,7 +88,7 @@ PRINT_CONFIG_VAR(VIDEO_THREAD2_FPS)
 
 // The place where the shots are saved (without slash on the end)
 #ifndef VIDEO_THREAD2_SHOT_PATH
-#define VIDEO_THREAD2_SHOT_PATH "/data/video/images2"
+#define VIDEO_THREAD2_SHOT_PATH "/data/video/images"
 #endif
 PRINT_CONFIG_VAR(VIDEO_THREAD2_SHOT_PATH)
 
