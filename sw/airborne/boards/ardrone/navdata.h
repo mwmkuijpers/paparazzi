@@ -126,7 +126,7 @@ struct navdata_t {
   bool_t imu_lost;                        ///< Whenever the imu is lost
 };
 extern struct navdata_t navdata;
-
+//extern float sonar_meas; //marly
 
 bool_t navdata_init(void);
 void navdata_update(void);

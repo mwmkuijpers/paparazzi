@@ -1,0 +1,14 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="writedata" dir="writedata">
+  <doc>
+    <description>Triggers take_shot command for front and bottom camera and writes data to text file</description>
+  </doc>
+  <header>
+    <file name="writedata.h"/>
+  </header>
+  <makefile>
+    <file name="writedata.c"/>
+  </makefile>
+</module>
+

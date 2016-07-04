@@ -8,7 +8,7 @@
     <file name="createdataset.h"/>
   </header>
   <init fun="init_createdataset()"/>
-  <periodic fun="file_logger_periodic()" freq="1" start="file_logger_start()" stop="file_logger_stop()" autorun="FALSE"/>
+  <periodic fun="file_logger_periodic()" freq="0.5" start="file_logger_start()" stop="file_logger_stop()" autorun="FALSE"/>
 
   <makefile>
     <file name="createdataset.c"/>

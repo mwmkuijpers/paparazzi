@@ -1,0 +1,15 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="trigger_loading">
+  <doc>
+    <description>triggers take_shot command and loads flight data</description>
+  </doc>
+  <header>
+    <file name="trigger_loading.h"/>
+  </header>
+  <periodic fun="trigger_take_shot" freq="1"/>
+  <makefile>
+    <file name="trigger_loading.c"/>
+  </makefile>
+</module>
+
