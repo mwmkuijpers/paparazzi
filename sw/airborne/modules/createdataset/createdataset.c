@@ -33,7 +33,7 @@
 #include "subsystems/abi.h"
 #include <string.h>
 #include <modules/sonar/agl_dist.h>
-#include <navdata.h>
+//#include <navdata.h>
 static abi_event sonar_ev;
 //static void sonar_cb(uint8_t sender_id, float distance);
 
@@ -92,7 +92,8 @@ void file_logger_start(void)
 	printf("[createdataset] MARLY fileloggerstart\n");
 	// Open file
 
-	file_logger = fopen("/data/video/usb/logfile.csv", "wa");
+  //file_logger = fopen("/data/video/usb/logfile.csv", "wa");
+  file_logger = fopen("/data/ftp/internal_000/images/logfile.csv", "wa");
 	if (file_logger < 0 ){
 	file_logger = NULL;
 	printf("MARLY createdataset logger file cannot be created");
@@ -145,11 +146,13 @@ if (file_logger != NULL) {
 /** The file pointer */
 struct image_t img_jpeg1;
 struct image_t img_jpeg2;
+struct image_t img_small;
 
 void init_save_shot(void)
 {
-  image_create(&img_jpeg1, 2024, 2024, IMAGE_JPEG);
-  image_create(&img_jpeg2, 1024, 1024, IMAGE_JPEG);
+  image_create(&img_jpeg1, 5000, 5000, IMAGE_JPEG);
+  image_create(&img_jpeg2, 5000, 5000, IMAGE_JPEG);
+  image_create(&img_small, 2048/4, 3320/4, IMAGE_YUV422);
 }
 
 
@@ -163,7 +166,7 @@ void save_shot(struct image_t *img, struct image_t *img_jpeg, char* camera_name,
   // Search for a file where we can write to
   char save_name[128];
 
-  sprintf(save_name, "/data/video/usb/%s_%05d.jpg", camera_name, count);
+  sprintf(save_name, "/data/ftp/internal_000/images/%s_%05d.jpg", camera_name, count);
 
   // Check if file exists or not
   if (access(save_name, F_OK) == -1) {
@@ -187,8 +190,11 @@ struct image_t *log_front(struct image_t *img)
 	if (trigger_front>0)
 	{
 		printf("AP thread vraagt om eem front beeld.\n");
-		trigger_front = 0;
-		save_shot(img, &img_jpeg1, "front", trigger_front);
+
+    image_yuv422_downsample(img, &img_small, 4);
+		save_shot(&img_small, &img_jpeg1, "front", trigger_front);
+
+    trigger_front = 0;
 	}
 	return img;
 }
@@ -198,8 +204,9 @@ struct image_t *log_bottom(struct image_t *img)
 	if (trigger_bottom>0)
 	{
 		printf("AP thread vraagt om eem bottom beeld.\n");
-		trigger_bottom = 0;
 	  	save_shot(img, &img_jpeg2, "bottom", trigger_bottom);	
+
+	  	trigger_bottom = 0;
 	}
   	return img;
 }
