@@ -105,10 +105,15 @@ void save_shot(struct image_t *img, struct image_t *img_jpeg)
 
 }
 
+volatile bool log_image_trigger_shot_in_cv_thread = FALSE;
+
 struct image_t *log_image(struct image_t *img);
 struct image_t *log_image(struct image_t *img)
 {
-  save_shot(img, &img_jpeg);
+  if (log_image_trigger_shot_in_cv_thread) {
+    log_image_trigger_shot_in_cv_thread = FALSE;
+    save_shot(img, &img_jpeg);
+  }
   return img;
 }
 
@@ -154,5 +159,5 @@ void video_usb_logger_stop(void)
 
 void video_usb_logger_periodic(void)
 {
-
+	log_image_trigger_shot_in_cv_thread = TRUE;
 }
