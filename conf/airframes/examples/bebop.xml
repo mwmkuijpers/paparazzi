@@ -41,6 +41,13 @@
       <define name="VIEWVIDEO_QUALITY_FACTOR" value="20"/>
     </module>
 
+	<module name="video_usb_logger">
+    <define name="VIDEO_USB_LOGGER_CAMERA" value="front_camera"/>
+<define name="VIDEO_USB_LOGGER_PATH" value="/data/ftp/internal_000/paparazzi/VIDEO_THREAD_SHOT_PATH"/>
+    </module>
+
+ 
+
   </modules>
 
   <commands>

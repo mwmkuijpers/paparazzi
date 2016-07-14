@@ -31,15 +31,18 @@
     <module name="send_imu_mag_current"/>
     <module name="air_data"/>
     <module name="geo_mag"/>
-    <!--module name="logger_file"/-->
-    <!--
+
+    <module name="logger_file"/>
+    
     <module name="video_thread">
     </module>
-    -->
-    <!--module name="video_rtp_stream">
+    
+    <module name="video_rtp_stream">
         <define name="VIEWVIDEO_CAMERA" value="front_camera"/>
     </module>
-    -->
+	<module name="video_usb_logger">
+    <define name="VIDEO_USB_LOGGER_CAMERA" value="front_camera"/>
+    </module>
   </modules>
 
   <commands>
