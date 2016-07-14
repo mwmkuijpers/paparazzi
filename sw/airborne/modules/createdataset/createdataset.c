@@ -25,9 +25,8 @@
 #include <stdio.h>
 #include "std.h"
 #include "modules/createdataset/createdataset.h"
-#include "modules/loggers/file_logger.h"
+//#include "modules/loggers/file_logger.h"
 #include "video_thread.h"
-#include "video_thread2.h"
 #include "state.h"
 #include "subsystems/imu.h"
 #include "subsystems/ins/ins_int.h"
@@ -44,41 +43,33 @@ float sonar_measurements;
 
 void trigger_shot(void)
 {
-
-printf("[createdataset] MARLY trigger shot loaded\n");
-
-video_thread_take_shot(TRUE);
-printf("[createdataset] MARLY shot taken\n");
-video_thread2_take_shot2(TRUE);
-
+	printf("[createdataset] MARLY trigger shot loaded\n");
+	//video_thread_take_shot(TRUE);
+	printf("[createdataset] MARLY shot taken\n");
+	//video_thread2_take_shot2(TRUE);
 }
+
+
 //float distance1;
 static void sonar_cb(uint8_t __attribute__((unused)) sender_id, float distance){
-printf("[createdataset] MARLY SONARDISTANCE %f\n", distance);
-sonar_measurements = distance;
+	printf("[createdataset] MARLY SONARDISTANCE %f\n", distance);
+	sonar_measurements = distance;
 }
 
-
-void load_sonar_data(void){
-//sonar_measurements =10;
-}
 
 
 static FILE *file_logger = NULL;
 
 void init_createdataset(void)
 {
-AbiBindMsgAGL(ABI_BROADCAST, &sonar_ev, sonar_cb);
-//printf("[createdataset] loadsonardata");
-	//load_sonar_data();	
+	AbiBindMsgAGL(ABI_BROADCAST, &sonar_ev, sonar_cb);
 }
+
+
 void file_logger_start(void)
 {
-video_thread_start();
-video_thread2_start();
 
-
-printf("[createdataset] MARLY fileloggerstart\n");
+	printf("[createdataset] MARLY fileloggerstart\n");
 	// Open file
 
 	file_logger = fopen("/data/video/usb/logfile.txt", "wa");
