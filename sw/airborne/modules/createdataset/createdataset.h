@@ -27,7 +27,7 @@
 #define CREATEDATASET_H
 
 void init_createdataset(void);
-void trigger_shot(void);
+//void trigger_shot(void);
 void file_logger_start(void);
 void file_logger_periodic(void);
 void load_sonar_data(void);
