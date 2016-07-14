@@ -37,16 +37,31 @@
 static abi_event sonar_ev;
 //static void sonar_cb(uint8_t sender_id, float distance);
 
+void init_save_shot(void);
+struct image_t *log_front(struct image_t *img);
+struct image_t *log_bottom(struct image_t *img);
+
+
+////////////////////////////////////////////////
+// Code in de autopilot thread
+
+
+
 
 float sonar_measurements;
 
 
-void trigger_shot(void)
+
+volatile uint32_t trigger_bottom = 0;
+volatile uint32_t trigger_front = 0;
+
+void trigger_shot(uint32_t counter);
+void trigger_shot(uint32_t counter)
 {
 	printf("[createdataset] MARLY trigger shot loaded\n");
-	//video_thread_take_shot(TRUE);
+	trigger_bottom = counter;
 	printf("[createdataset] MARLY shot taken\n");
-	//video_thread2_take_shot2(TRUE);
+	trigger_front = counter;
 }
 
 
@@ -62,7 +77,12 @@ static FILE *file_logger = NULL;
 
 void init_createdataset(void)
 {
+	init_save_shot();
+
 	AbiBindMsgAGL(ABI_BROADCAST, &sonar_ev, sonar_cb);
+
+	cv_add_to_device(&front_camera, log_front);
+	cv_add_to_device(&bottom_camera, log_bottom);
 }
 
 
@@ -72,7 +92,7 @@ void file_logger_start(void)
 	printf("[createdataset] MARLY fileloggerstart\n");
 	// Open file
 
-	file_logger = fopen("/data/video/usb/logfile.txt", "wa");
+	file_logger = fopen("/data/video/usb/logfile.csv", "wa");
 	if (file_logger < 0 ){
 	file_logger = NULL;
 	printf("MARLY createdataset logger file cannot be created");
@@ -89,9 +109,9 @@ printf("[createdataset] MARLY filelogger does not work");
    return;
   }
 
-  trigger_shot();
   static uint32_t counter;
-  struct Int32Quat *quat = stateGetNedToBodyQuat_i();
+  trigger_shot(counter);
+  //struct Int32Quat *quat = stateGetNedToBodyQuat_i();
 
   fprintf(file_logger, "%d,%d,%d,%d,%d,%d,%d,%f,\n",
           counter,
@@ -116,3 +136,94 @@ if (file_logger != NULL) {
     file_logger = NULL;
   }
 }
+
+
+/////////////////////////////////////////////////////////
+// Code in de vision thread
+
+
+/** The file pointer */
+struct image_t img_jpeg1;
+struct image_t img_jpeg2;
+
+void init_save_shot(void)
+{
+  image_create(&img_jpeg1, 2024, 2024, IMAGE_JPEG);
+  image_create(&img_jpeg2, 1024, 1024, IMAGE_JPEG);
+}
+
+
+#include "modules/computer_vision/lib/encoding/jpeg.h"
+
+
+void save_shot(struct image_t *img, struct image_t *img_jpeg, char* camera_name, uint32_t count);
+void save_shot(struct image_t *img, struct image_t *img_jpeg, char* camera_name, uint32_t count)
+{
+
+  // Search for a file where we can write to
+  char save_name[128];
+
+  sprintf(save_name, "/data/video/usb/%s_%05d.jpg", camera_name, count);
+
+  // Check if file exists or not
+  if (access(save_name, F_OK) == -1) {
+
+    // Create a high quality image (99% JPEG encoded)
+    jpeg_encode_image(img, img_jpeg, 99, TRUE);
+
+    FILE *fp = fopen(save_name, "w");
+    if (fp == NULL) {
+      printf("[video_thread-thread] Could not write shot %s.\n", save_name);
+    } else {
+      // Save it to the file and close it
+      fwrite(img_jpeg->buf, sizeof(uint8_t), img_jpeg->buf_size, fp);
+      fclose(fp);
+    }
+  }
+}
+
+struct image_t *log_front(struct image_t *img)
+{
+	if (trigger_front>0)
+	{
+		printf("AP thread vraagt om eem front beeld.\n");
+		trigger_front = 0;
+		save_shot(img, &img_jpeg1, "front", trigger_front);
+	}
+	return img;
+}
+
+struct image_t *log_bottom(struct image_t *img)
+{
+	if (trigger_bottom>0)
+	{
+		printf("AP thread vraagt om eem bottom beeld.\n");
+		trigger_bottom = 0;
+	  	save_shot(img, &img_jpeg2, "bottom", trigger_bottom);	
+	}
+  	return img;
+}
+
+/** Start the file logger and open a new file
+void video_usb_logger_start(void)
+{
+  // Create the jpeg image used later
+  image_create(&img_jpeg, VIDEO_USB_LOGGER_WIDTH, VIDEO_USB_LOGGER_HEIGHT, IMAGE_JPEG);
+
+  char filename[512];
+
+  // Search and create a new folder
+  sprintf(foldername, "%s/pprzvideo%05d", STRINGIFY(VIDEO_USB_LOGGER_PATH), counter);
+  struct stat st = {0};
+
+  while (stat(foldername, &st) >= 0) {
+    counter++;
+    sprintf(foldername, "%s/pprzvideo%05d", STRINGIFY(VIDEO_USB_LOGGER_PATH), counter);
+  }
+  mkdir(foldername, 0700);
+*/
+
+
+
+
+
