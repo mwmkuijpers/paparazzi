@@ -36,13 +36,14 @@
     </module>
 
     <module name="createdataset">
+      <define name="BEBOP" value="1"/>
     </module>
 
-    <module name="video_rtp_stream">
+    <!--module name="video_rtp_stream">
       <define name="VIEWVIDEO_CAMERA" value="front_camera"/>
       <define name="VIEWVIDEO_DOWNSIZE_FACTOR" value="4"/>
       <define name="VIEWVIDEO_QUALITY_FACTOR" value="50"/>
-    </module>
+    </module-->
 
   </modules>
 

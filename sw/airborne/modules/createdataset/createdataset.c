@@ -46,6 +46,10 @@ struct image_t *log_bottom(struct image_t *img);
 // Code in de autopilot thread
 
 
+// put one of following defines in your airframe file
+//#define ARDRONE
+//#define ARDRONE_USB
+//#define BEBOP
 
 
 float sonar_measurements;
@@ -67,7 +71,7 @@ void trigger_shot(uint32_t counter)
 
 //float distance1;
 static void sonar_cb(uint8_t __attribute__((unused)) sender_id, float distance){
-	printf("[createdataset] MARLY SONARDISTANCE %f\n", distance);
+	//printf("[createdataset] MARLY SONARDISTANCE %f\n", distance);
 	sonar_measurements = distance;
 }
 
@@ -92,22 +96,28 @@ void file_logger_start(void)
 	printf("[createdataset] MARLY fileloggerstart\n");
 	// Open file
 
-  //file_logger = fopen("/data/video/usb/logfile.csv", "wa");
-  file_logger = fopen("/data/ftp/internal_000/images/logfile.csv", "wa");
-	if (file_logger < 0 ){
-	file_logger = NULL;
-	printf("MARLY createdataset logger file cannot be created");
-	return;
+#ifdef ARDRONE_USB
+	file_logger = fopen("/data/video/usb/logfile.csv", "wa");
+#elif defined(ARDRONE)
+  file_logger = fopen("/data/video/logfile.csv", "wa");
+#else // BEBOP
+	file_logger = fopen("/data/ftp/internal_000/images/logfile.csv", "wa");
+#endif
+
+	if (file_logger <= 0 ){
+	  file_logger = NULL;
+	  printf("MARLY createdataset logger file cannot be created");
+	  return;
 	}
 }
 
-void file_logger_periodic(void)
+void createdataset_periodic(void)
 {
-printf("[createdataset] MARLY fileloggerperiodic loaded");
+  printf("[createdataset] MARLY fileloggerperiodic loaded");
  
- if (file_logger<0) {
-printf("[createdataset] MARLY filelogger does not work");
-   return;
+  if (file_logger<=0) {
+    printf("[createdataset] MARLY filelogger does not work");
+    return;
   }
 
   static uint32_t counter;
@@ -148,15 +158,19 @@ struct image_t img_jpeg1;
 struct image_t img_jpeg2;
 struct image_t img_small;
 
+pthread_mutex_t lock;
+
 void init_save_shot(void)
 {
-  image_create(&img_jpeg1, 5000, 5000, IMAGE_JPEG);
-  image_create(&img_jpeg2, 5000, 5000, IMAGE_JPEG);
-  image_create(&img_small, 2048/4, 3320/4, IMAGE_YUV422);
+  pthread_mutex_init(&lock, NULL);
+  image_create(&img_jpeg1, front_camera.output_size.w, front_camera.output_size.h, IMAGE_JPEG);
+  image_create(&img_jpeg2, bottom_camera.output_size.w, bottom_camera.output_size.h, IMAGE_JPEG);
+  image_create(&img_small, front_camera.output_size.w/4, front_camera.output_size.h/4, IMAGE_YUV422);
 }
 
 
 #include "modules/computer_vision/lib/encoding/jpeg.h"
+
 
 
 void save_shot(struct image_t *img, struct image_t *img_jpeg, char* camera_name, uint32_t count);
@@ -166,13 +180,23 @@ void save_shot(struct image_t *img, struct image_t *img_jpeg, char* camera_name,
   // Search for a file where we can write to
   char save_name[128];
 
+#ifdef ARDRONE_USB
+  sprintf(save_name, "/data/video/usb/%s_%05d.jpg", camera_name, count);
+#elif defined(ARDRONE)
+  sprintf(save_name, "/data/video/%s_%05d.jpg", camera_name, count);
+#else //BEBOP
   sprintf(save_name, "/data/ftp/internal_000/images/%s_%05d.jpg", camera_name, count);
+#endif
 
   // Check if file exists or not
   if (access(save_name, F_OK) == -1) {
 
+    pthread_mutex_lock(&lock);
+
     // Create a high quality image (99% JPEG encoded)
     jpeg_encode_image(img, img_jpeg, 99, TRUE);
+
+    pthread_mutex_unlock(&lock);
 
     FILE *fp = fopen(save_name, "w");
     if (fp == NULL) {
@@ -204,9 +228,9 @@ struct image_t *log_bottom(struct image_t *img)
 	if (trigger_bottom>0)
 	{
 		printf("AP thread vraagt om eem bottom beeld.\n");
-	  	save_shot(img, &img_jpeg2, "bottom", trigger_bottom);	
+	  save_shot(img, &img_jpeg2, "bottom", trigger_bottom);
 
-	  	trigger_bottom = 0;
+	  trigger_bottom = 0;
 	}
   	return img;
 }
